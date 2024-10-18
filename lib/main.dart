@@ -4,33 +4,56 @@ void main() {
   runApp(const MyApp());
 }
 
-class MyApp extends StatelessWidget {
+class MyApp extends StatefulWidget {
   const MyApp({super.key});
+
+  @override
+  State<MyApp> createState() => _MyAppState();
+}
+
+class _MyAppState extends State<MyApp> {
+  ThemeMode _themeMode = ThemeMode.light;
+
+  void _toggleTheme() {
+    setState(() {
+      _themeMode = _themeMode == ThemeMode.light ? ThemeMode.dark : ThemeMode.light;
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      home: MyHomePage(),
+      themeMode: _themeMode,
+      theme: ThemeData.light().copyWith(
+        appBarTheme: const AppBarTheme(backgroundColor: Colors.amberAccent),
+      ),
+      darkTheme: ThemeData.dark().copyWith(
+        appBarTheme: const AppBarTheme(backgroundColor: Colors.amber),
+      ),
+      home: MyHomePage(toggleTheme: _toggleTheme),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key});
+  final VoidCallback toggleTheme;
+
+  const MyHomePage({super.key, required this.toggleTheme});
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyHomePage> {
-  String? selectedLocation; // This will hold the selected dropdown value
+  String? selectedLocation;
 
   @override
   Widget build(BuildContext context) {
+    final isDarkMode = Theme.of(context).brightness == Brightness.dark;
+
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.amberAccent,
         shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.only(
             bottomLeft: Radius.circular(26),
@@ -45,13 +68,19 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ),
         centerTitle: true,
+        actions: [
+          IconButton(
+            icon: Icon(isDarkMode ? Icons.light_mode : Icons.dark_mode),
+            onPressed: widget.toggleTheme,
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(height: 50), // Space between AppBar and the text
+            const SizedBox(height: 50),
             const Text(
               'In that case, here are the best courses that\nalign with your interests!',
               style: TextStyle(fontSize: 32, fontWeight: FontWeight.w700),
@@ -69,7 +98,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   ),
                   child: DropdownButtonHideUnderline(
                     child: DropdownButton<String>(
-                      value: selectedLocation, // Bind selected value
+                      value: selectedLocation,
                       hint: const Text('Any Location'),
                       items: <String>[
                         'Makati City', 
@@ -85,7 +114,7 @@ class _MyHomePageState extends State<MyHomePage> {
                       }).toList(),
                       onChanged: (String? newValue) {
                         setState(() {
-                          selectedLocation = newValue; // Update selected value
+                          selectedLocation = newValue;
                         });
                       },
                     ),
@@ -93,7 +122,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 ),
               ],
             ),
-            const SizedBox(height: 20), // Space between dropdown and content
+            const SizedBox(height: 20),
             Expanded(
               child: SingleChildScrollView(
                 child: Column(
@@ -113,7 +142,6 @@ class _MyHomePageState extends State<MyHomePage> {
     );
   }
 
-  // Function that builds a clickable container
   Widget buildCourseContainer(String course, String location, String university, BuildContext context) {
     return GestureDetector(
       onTap: () {
@@ -125,7 +153,7 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Container(
         padding: const EdgeInsets.all(16.0),
         decoration: BoxDecoration(
-          color: Colors.grey[200],
+          color: Theme.of(context).cardColor,
           borderRadius: BorderRadius.circular(15),
           border: Border.all(color: Colors.grey),
         ),
@@ -142,11 +170,10 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 }
 
-// New page that will be displayed when a course is clicked
 class CourseDetailPage extends StatelessWidget {
   final String course;
 
-  const CourseDetailPage({Key? key, required this.course}) : super(key: key);
+  const CourseDetailPage({super.key, required this.course});
 
   @override
   Widget build(BuildContext context) {
